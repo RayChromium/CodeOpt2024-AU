@@ -1,0 +1,203 @@
+        -:    0:Source:mm.c
+        -:    0:Graph:mm.gcno
+        -:    0:Data:mm.gcda
+        -:    0:Runs:1
+        -:    1:
+        -:    2:#include <stdio.h>
+        -:    3:#include <stdlib.h>
+        -:    4:#include <time.h>
+        -:    5:
+        -:    6:/*
+        -:    7:  - Load the module gcc: module load gcc
+        -:    8:  - Compile with:  gcc -O3 -o mm
+        -:    9: */
+        -:   10:
+        -:   11:
+        -:   12:/* Allocates a 2D matrix of size rows*cols as a contiguous block */
+function allocate_matrix called 3 returned 100% blocks executed 64%
+        3:   13:  double ** allocate_matrix(int rows, int cols) {
+        -:   14:    /* Allocate row pointers */
+        3:   15:    double **M = (double **) malloc(rows*sizeof(double *));
+        3:   16:    if (M==NULL) {
+branch  0 taken 0 (fallthrough)
+branch  1 taken 3
+    #####:   17:      printf("Could not allocate memory for row pointers\n");
+call    0 never executed
+    #####:   18:      exit(0);
+call    0 never executed
+        -:   19:    }
+        -:   20:    /* Allocate a contiguous block of rows*cols elements */
+        3:   21:    double *Mb = (double *) malloc(rows*cols*sizeof(double));
+        3:   22:    if (Mb==NULL) {
+branch  0 taken 0 (fallthrough)
+branch  1 taken 3
+    #####:   23:      printf("Could not allocate memory for matrix\n");
+call    0 never executed
+    #####:   24:      exit(0);
+call    0 never executed
+        -:   25:    }
+        -:   26:    /* Initialize pointers to rows in the matrix */
+     6003:   27:    for (int i=0; i<rows; i++) {
+branch  0 taken 6000
+branch  1 taken 3 (fallthrough)
+     6000:   28:      M[i] = Mb + i*cols;
+        -:   29:    }
+        3:   30:    return M;
+        -:   31:  }
+        -:   32:
+        -:   33:/* Frees a 2D matrix */
+function free_matrix called 3 returned 100% blocks executed 100%
+        3:   34:  void free_matrix(double **M) {
+        3:   35:    free(M[0]);
+        3:   36:    free(M);
+        3:   37:  }
+        -:   38:
+        -:   39:/* Writes a matrix M of size r*c to the file fn in readable format.
+        -:   40:   Returns zero if the file couldn't be opened, otherwise 1       */
+function fwrite_matrix called 1 returned 100% blocks executed 87%
+        1:   41:int fwrite_matrix(double **M, const int rows, const int cols, char *fn) {
+        -:   42:  FILE *fp;
+        -:   43:  /* Open the file */
+        1:   44:  if ((fp=fopen(fn, "w")) == NULL) {
+call    0 returned 1
+branch  1 taken 0 (fallthrough)
+branch  2 taken 1
+    #####:   45:    printf("Couldn't open file %s\n", fn);
+call    0 never executed
+    #####:   46:    return 0;
+        -:   47:  }
+        -:   48:  /* Write the matrix to the file in ASCII format */
+     2001:   49:  for (int i=0; i<rows; i++) {
+branch  0 taken 2000
+branch  1 taken 1 (fallthrough)
+  4002000:   50:      for (int j=0; j<cols; j++) {
+branch  0 taken 4000000
+branch  1 taken 2000 (fallthrough)
+  4000000:   51:	fprintf(fp, "%.1f ", M[i][j]);
+call    0 returned 4000000
+        -:   52:      }
+     2000:   53:      fprintf(fp, "\n");
+call    0 returned 2000
+        -:   54:  }
+        1:   55:  fclose(fp);  /* Close the file */
+call    0 returned 1
+        1:   56:  return(1);
+        -:   57:}
+        -:   58:
+        -:   59:/* Prints out the first limit*limit elements of a 2D matrix */
+function print_matrix called 1 returned 100% blocks executed 100%
+        1:   60:  void print_matrix(double **M, const int rows, const int cols, const int limit) {
+        1:   61:    int r = (rows<limit) ? rows : limit;
+        1:   62:    int c = (cols<limit) ? cols : limit;
+       11:   63:    for (int i=0; i<r; i++) {
+branch  0 taken 10
+branch  1 taken 1 (fallthrough)
+      110:   64:      for (int j=0; j<c; j++) {
+branch  0 taken 100
+branch  1 taken 10 (fallthrough)
+      100:   65:	printf("%3.1f ", M[i][j]);
+call    0 returned 100
+        -:   66:      }
+       10:   67:      printf("\n");
+call    0 returned 10
+        -:   68:    }
+        1:   69:  }
+        -:   70:
+        -:   71:/*
+        -:   72:  Multiply the matrices A and B and place the result in C.
+        -:   73:  The matrices are assumed to be square of size N*N
+        -:   74:*/
+function matrixmult called 1 returned 100% blocks executed 100%
+        1:   75:void matrixmult(double **A, double **B, double **C, const int N) {
+        -:   76:  /* Fill in the code here */
+        -:   77:  int i, j, k;
+     2001:   78:  for (i = 0; i < N; i++) {
+branch  0 taken 2000
+branch  1 taken 1 (fallthrough)
+  4002000:   79:    for (j = 0; j < N; j++) {
+branch  0 taken 4000000
+branch  1 taken 2000 (fallthrough)
+  4000000:   80:      C[i][j] = 0.0; // Initialize the element to zero
+8004000000:   81:      for (k = 0; k < N; k++) {
+branch  0 taken 8000000000
+branch  1 taken 4000000 (fallthrough)
+8000000000:   82:        C[i][j] += A[i][k] * B[k][j];
+        -:   83:      }
+        -:   84:    }
+        -:   85:  }
+        1:   86:}
+        -:   87:
+        -:   88:
+function main called 1 returned 0% blocks executed 100%
+        1:   89:int main(int argc, char** argv) {
+        -:   90:  
+        1:   91:  int size = 1000;          // Default matrix size is 1000*1000
+        -:   92:  clock_t start1, end1;
+        -:   93:
+        -:   94:  // Check if a matrix size is given on the command line
+        1:   95:  if (argc>1) {
+branch  0 taken 1 (fallthrough)
+branch  1 taken 0
+        1:   96:    size = atoi(argv[1]);
+        -:   97:  }
+        -:   98:
+        -:   99:  // Allocate the matrices
+        1:  100:  double **A = allocate_matrix(size, size);
+call    0 returned 1
+        1:  101:  double **B = allocate_matrix(size, size);
+call    0 returned 1
+        1:  102:  double **C = allocate_matrix(size, size);
+call    0 returned 1
+        -:  103:  
+        1:  104:  printf("Allocated matrices of size %d\n\n", size);
+call    0 returned 1
+        -:  105:
+        -:  106:  // Initilaize the matrices with some values
+     2001:  107:  for (int i=0; i<size; i++) {
+branch  0 taken 2000
+branch  1 taken 1 (fallthrough)
+  4002000:  108:    for (int j=0; j<size; j++) {
+branch  0 taken 4000000
+branch  1 taken 2000 (fallthrough)
+  4000000:  109:	A[i][j] = (double)i;
+  4000000:  110:	B[i][j] = (double)j;
+  4000000:  111:	C[i][j] = 0.0;
+        -:  112:    }
+        -:  113:  }
+        -:  114:
+        1:  115:  start1 = clock();    /* Start measuring time */
+call    0 returned 1
+        -:  116:  // Do the matrix multiplication
+        1:  117:  matrixmult(A, B, C, size);
+call    0 returned 1
+        1:  118:  printf("Time for matrix multiplication %6.2f seconds\n", ((clock()-start1)/1000000.0));
+call    0 returned 1
+call    1 returned 1
+        -:  119:
+        -:  120:  /*
+        -:  121:  printf("Matrix A:\n");
+        -:  122:  print_matrix(A, size, size, 10);
+        -:  123:
+        -:  124:  printf("Matrix B:\n");
+        -:  125:  print_matrix(B, size, size, 10);
+        -:  126:  */
+        1:  127:  end1 = clock();
+call    0 returned 1
+        1:  128:  printf("Matrix C:\n");
+call    0 returned 1
+        1:  129:  print_matrix(C, size, size, 10);
+call    0 returned 1
+        1:  130:  printf("\nTime consumed: %d\n", end1 - start1);
+call    0 returned 1
+        -:  131:
+        -:  132:
+        -:  133:  // Write the result to a file
+        1:  134:  fwrite_matrix(C, size, size, "result.txt");
+call    0 returned 1
+        -:  135:
+        1:  136:  free_matrix(A); free_matrix(B); free_matrix(C);
+call    0 returned 1
+call    1 returned 1
+call    2 returned 1
+        1:  137:  exit(0);
+        -:  138:}

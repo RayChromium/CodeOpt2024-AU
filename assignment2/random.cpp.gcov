@@ -1,0 +1,47 @@
+        -:    0:Source:random.cpp
+        -:    0:Graph:random.gcno
+        -:    0:Data:random.gcda
+        -:    0:Runs:1
+        -:    1:/* Rand number example */
+        -:    2:#include <stdlib.h>     /* srand, rand */
+        -:    3:#include <time.h>       /* time */
+        -:    4:#include <iostream>
+        -:    5:
+        -:    6:#define N 1000
+        -:    7:
+function main called 1 returned 100% blocks executed 100%
+        1:    8:int main ()
+        -:    9:{
+        1:   10:  int r, small=0, large=0;
+        -:   11:  
+        -:   12:  /* Initialize random seed from current time */
+        1:   13:  srand (time(NULL));
+call    0 returned 1
+call    1 returned 1
+     1001:   14:  for (int i=0; i<N; i++) {
+branch  0 taken 1000 (fallthrough)
+branch  1 taken 1
+        -:   15:    /* Generate number between 0 and 9: */
+     1000:   16:    r = rand() % 10 ;
+call    0 returned 1000
+     1000:   17:    if (r<5) {
+branch  0 taken 486 (fallthrough)
+branch  1 taken 514
+      486:   18:      small++;
+        -:   19:    }
+        -:   20:    else {
+      514:   21:      large++;
+        -:   22:    }
+        -:   23:  }
+        -:   24:
+        1:   25:  std::cout << "Nr of small values = " << small << std::endl;
+call    0 returned 1
+call    1 returned 1
+call    2 returned 1
+        1:   26:  std::cout << "Nr of large values = " << large << std::endl;
+call    0 returned 1
+call    1 returned 1
+call    2 returned 1
+        -:   27:  
+        1:   28:  return 0;
+        -:   29:}
