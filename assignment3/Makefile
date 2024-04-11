@@ -3,7 +3,8 @@ CC          = gcc
 CLINKER     = $(CC)
 OPTFLAGS    = -O3
 LFLAGS	    = -lm
-CFLAGS      = $(OPTFLAGS) $(LFLAGS)
+# CFLAGS      = $(OPTFLAGS) $(LFLAGS)
+CFLAGS      = $(LFLAGS)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $*.c

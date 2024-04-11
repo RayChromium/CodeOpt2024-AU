@@ -110,23 +110,30 @@ void matrixmult_jki(double **A, double **B, double **C, const int N) {
 }
 
 void matrixmult_blocked(double **a, double **b, double **c, int N, int block_size) {
-    for (int ii = 0; ii < N; ii += block_size) {
-        for (int jj = 0; jj < N; jj += block_size) {
-            for (int kk = 0; kk < N; kk += block_size) {
-                int i_max = (ii + block_size > N) ? N : ii + block_size;
-                int j_max = (jj + block_size > N) ? N : jj + block_size;
-                int k_max = (kk + block_size > N) ? N : kk + block_size;
-                for (int i = ii; i < i_max; i++) {
-                    for (int j = jj; j < j_max; j++) {
-                        c[i][j] = 0.0;
-                        for (int k = kk; k < kk + block_size; k++) {
-                            c[i][j] += a[i][k] * b[k][j];
-                        }
-                    }
-                }
-            }
-        }
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      c[i][j] = 0.0;
     }
+  }
+
+
+  for (int ii = 0; ii < N; ii += block_size) {
+    for (int jj = 0; jj < N; jj += block_size) {
+      for (int kk = 0; kk < N; kk += block_size) {
+        int i_max = (ii + block_size > N) ? N : ii + block_size;
+        int j_max = (jj + block_size > N) ? N : jj + block_size;
+        int k_max = (kk + block_size > N) ? N : kk + block_size;
+        for (int i = ii; i < i_max; i++) {
+          for (int j = jj; j < j_max; j++) {
+            c[i][j] = 0.0;
+            for (int k = kk; k < k_max; k++) {
+              c[i][j] += a[i][k] * b[k][j];
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 
@@ -158,26 +165,28 @@ int main(int argc, char** argv) {
 
   start1 = clock();    /* Start measuring time */
   // Do the matrix multiplication
-  // matrixmult(A, B, C, size);
-  // printf("Time for matrix multiplication %6.2f seconds\n", ((clock()-start1)/1000000.0));
+  matrixmult(A, B, C, size);
+  printf("Time for matrix multiplication %6.2f seconds\n", ((clock()-start1)/1000000.0));
 
-  // start_ikj = clock();
-  // matrixmult_ikj( A, B, C, size );
-  // printf("Time for matrix multiplication_ikj %6.2f seconds\n", ((clock()-start_ikj)/1000000.0));
+  start_ikj = clock();
+  matrixmult_ikj( A, B, C, size );
+  printf("Time for matrix multiplication_ikj %6.2f seconds\n", ((clock()-start_ikj)/1000000.0));
 
-  // start_jki = clock();
-  // matrixmult_jki( A, B, C, size );
-  // printf("Time for matrix multiplication_ikj %6.2f seconds\n", ((clock()-start_jki)/1000000.0));
+  start_jki = clock();
+  matrixmult_jki( A, B, C, size );
+  printf("Time for matrix multiplication_ikj %6.2f seconds\n", ((clock()-start_jki)/1000000.0));
 
-  // l1
-  start_block_l1 = clock();
-  matrixmult_blocked( A, B, C, size, 512 );
-  printf("Time for matrix multiplication_blocked with L1 %6.2f seconds\n", ((clock()-start_block_l1)/1000000.0));
+  // printf("start blocked multi L1 \n");
+  // // l1
+  // start_block_l1 = clock();
+  // matrixmult_blocked( A, B, C, size, 512 );
+  // printf("Time for matrix multiplication_blocked with L1 %6.2f seconds\n", ((clock()-start_block_l1)/1000000.0));
 
-  // l2
-  start_block_l2 = clock();
-  matrixmult_blocked( A, B, C, size, 1024 );
-  printf("Time for matrix multiplication_blocked with L2 %6.2f seconds\n", ((clock()-start_block_l2)/1000000.0));
+  // printf("start blocked multi L2 \n");
+  // // l2
+  // start_block_l2 = clock();
+  // matrixmult_blocked( A, B, C, size, 1024 );
+  // printf("Time for matrix multiplication_blocked with L2 %6.2f seconds\n", ((clock()-start_block_l2)/1000000.0));
 
 
   /*
