@@ -1,0 +1,2 @@
+## Weekly report 5  
+This week's task was understanding some generated assembly code, including how are loops handled, how are the parameters passed to the procedures, and also some other features of assembly code including lines with no effect as well as the operation commands related to optimization. 
