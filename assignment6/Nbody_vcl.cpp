@@ -5,6 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include "vectorclass.h"
+#include <limits>
 
 const double G  = 6.67259e-7;  /* Gravitational constant (should be e-10 but modified to get more action */
 const double dt = 1.0;         /* Length of timestep */
@@ -54,6 +55,46 @@ void ComputeForce(int N, double *X, double *Y, double *mass, double *Fx, double 
     }
   }
 }
+
+void ComputeForceVec(int N, double *X, double *Y, double *mass, double *Fx, double *Fy) {
+    const double mindist = 0.0001;
+    Vec4d minDistVec = Vec4d(mindist);
+    Vec4d GVec = Vec4d(G);
+    Vec4d zero = Vec4d(0.0);
+    double inf = std::numeric_limits<double>::infinity();
+
+    for (int i = 0; i < N; i += 4) {
+        Vec4d xi = Vec4d().load(&X[i]);
+        Vec4d yi = Vec4d().load(&Y[i]);
+        Vec4d mi = Vec4d().load(&mass[i]);
+        Vec4d Fxi = Vec4d(0.0);
+        Vec4d Fyi = Vec4d(0.0);
+
+        for (int j = 0; j < N; j++) {
+            Vec4d xj = Vec4d().load(&X[j]);
+            Vec4d yj = Vec4d().load(&Y[j]);
+            Vec4d mj = Vec4d().load(&mass[j]);
+
+            Vec4d dx = xj - xi;
+            Vec4d dy = yj - yi;
+
+            Vec4d r2 = dx * dx + dy * dy;
+            Vec4d r = sqrt(r2);
+            Vec4db mask = r > minDistVec;
+
+            Vec4d r3 = select(mask, r2 * r, Vec4d(inf));
+
+            Vec4d Fxij = select(mask, GVec * mi * mj * dx / r3, zero);
+            Vec4d Fyij = select(mask, GVec * mi * mj * dy / r3, zero);
+
+            Fxi += Fxij;
+            Fyi += Fyij;
+        }
+
+        Fxi.store(&Fx[i]);
+        Fyi.store(&Fy[i]);
+    }
+}
 	    
 
 int main(int argc, char **argv) {
@@ -69,6 +110,7 @@ int main(int argc, char **argv) {
   double *Vy;            /* velocities on y-axis of bodies */
   double *Fx;            /* forces on x-axis of bodies */
   double *Fy;            /* forces on y-axis of bodies */
+  double *FxVec, *FyVec; /* forces on x and y axis, but computed by ComputeForceVec */
 
   printf ("N-body simulation, number of bodies = %d \n", N);
   
@@ -80,6 +122,9 @@ int main(int argc, char **argv) {
    Vy       = (double *) calloc(N, sizeof(double));
    Fx       = (double *) calloc(N, sizeof(double));  // Forces
    Fy       = (double *) calloc(N, sizeof(double));
+
+   FxVec = (double *) calloc(N, sizeof(double));
+   FyVec = (double *) calloc(N, sizeof(double));
 
    // Seed the random number generator so that it generates a fixed sequence
    unsigned short int seedval[3] = {7, 7, 7};
@@ -103,10 +148,21 @@ int main(int argc, char **argv) {
    // Write intial particle coordinates to a file
    write_particles(N, X, Y, fileName1);
 
-   clock_t start=clock();;    // Start measuring time, replace with MPI_Wtime() in a parallel program
+   clock_t end, startVector, endVector;
+   double time = 0.0, vectorTime = 0.0;
+   clock_t start=clock();    // Start measuring time, replace with MPI_Wtime() in a parallel program
 
    // Compute the initial forces that we get 
    ComputeForce(N, X, Y, mass, Fx, Fy);
+   end = clock();
+   time += (double)( end - start )/1000000.0;
+
+   // Compute but with ComputeForceVec
+   startVector = clock();
+   ComputeForceVec(N, X, Y, mass, FxVec, FyVec);
+   endVector = clock();
+   vectorTime += (double)(endVector - startVector) / 1000000.0;
+   
 
    // Set up the velocity vectors caused by initial forces for Leapfrog method
    for(int i = 0; i<N; i++){
@@ -131,7 +187,15 @@ int main(int argc, char **argv) {
      }
      
      /* Calculate forces for the new positions */
+     start = clock();
      ComputeForce(N, X, Y, mass, Fx, Fy);
+     end = clock();
+     time += (double)( end - start )/1000000.0;
+
+     startVector = clock();
+     ComputeForceVec(N, X, Y, mass, FxVec, FyVec);
+     endVector = clock();
+     vectorTime += (double)(endVector - startVector) / 1000000.0;
      
      /* Update velocities of bodies */ 
      for (int i=0;i<N;i++){		
@@ -142,7 +206,26 @@ int main(int argc, char **argv) {
    }  /* end of while-loop */
 
    printf("\n");
-   printf("Time: %6.2f seconds\n", ((clock()-start)/1000000.0));
+   printf("Time: %6.2f seconds\n", time);
+   printf("Time with vectorization: %6.2f seconds\n", vectorTime);
+
+
+   // Verify the results
+   double diffTolerance = 1e-8;
+   bool allMatch = true;
+   for( int i = 0; i < N; ++i ) {
+    if (fabs(Fx[i] - FxVec[i]) > diffTolerance || fabs(Fy[i] - FyVec[i]) > diffTolerance) {
+            printf("Mismatch found at index %d: Fx = %f, FxVec = %f, Fy = %f, FyVec = %f\n",
+                   i, Fx[i], FxVec[i], Fy[i], FyVec[i]);
+            allMatch = false;
+        }
+   }
+   if (allMatch) {
+    printf("All results match within tolerance.\n");
+   } else {
+    printf("There were discrepancies in the results.\n");
+   }
+
 
    char fileName2[] = "final_pos.txt";
    // Write final particle coordinates to a file
