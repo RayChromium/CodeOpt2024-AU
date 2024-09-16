@@ -1,0 +1,68 @@
+Assigment 3
+
+1.
+a) analysis of the memory access patterns for the (i,k,j) and (j,k,i) orders are as follows:
+
+(i,k,j) order:
+
+In the innermost loop, k is the index variable.
+Accesses to elements in matrix a are done row-wise, with a stride of 1, and the same cache behavior as the (i,j,k) version applies here.
+Accesses to elements in matrix b are done column-wise, but the value of b[k][j] is kept in a local variable and does not have to be read from memory in the innermost loop, which reduces the cache misses.
+So, the number of cache misses per inner loop iteration is approximately 0.125 (only considering the cache misses for matrix a).
+(j,k,i) order:
+
+In the innermost loop, i is the index variable.
+Accesses to elements in matrix a are done row-wise, but the value of a[i][k] is kept in a local variable and does not have to be read from memory in the innermost loop, which reduces the cache misses.
+Accesses to elements in matrix b are done column-wise, with a stride of N, which means that every Nth access to b will be a cache miss.
+So, the number of cache misses per inner loop iteration is approximately 1/N + 0.125.
+
+b)
+To test the performance of the (i,k,j) and (j,k,i) orders, you can implement the algorithms in C/C++ and use the gettimeofday() function or chrono::high_resolution_clock in C++11 to measure the run time.
+You can use matrices of size 10001000, 20002000, 30003000 and 40004000 as test cases and compare the performance of the three implementations.
+You can draw a graph that presents the measured run times for the above cases using a tool like matplotlib in python.
+
+c)
+To verify that the results of your different versions of matrix multiplication are correct, you can check if the multiplication is associative, i.e. (A*B)*C = A*(B*C) for matrices A, B and C. 
+You can also check if the diagonal elements of the resulting matrix are the sum of the corresponding row and column of the original matrices.
+
+2.
+A version of matrix multiplication with cache blocking is described in the lecture material.
+
+a) To implement a blocked version of matrix multiplication, you can divide the matrices into smaller blocks and perform matrix multiplication on these blocks. 
+This will increase the cache hit rate and reduce the number of cache misses.
+
+void blocked_matrix_multiply(double **a, double **b, double **c, int N, int block_size) {
+    for (int ii = 0; ii < N; ii += block_size) {
+        for (int jj = 0; jj < N; jj += block_size) {
+            for (int kk = 0; kk < N; kk += block_size) {
+                for (int i = ii; i < ii + block_size; i++) {
+                    for (int j = jj; j < jj + block_size; j++) {
+                        c[i][j] = 0.0;
+                        for (int k = kk; k < kk + block_size; k++) {
+                            c[i][j] += a[i][k] * b[k][j];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+b) Assuming double precision floating point numbers are used, the size of each matrix element is 8 bytes.
+
+To calculate the block size for level 1 cache, we can use the formula:
+
+block_size = L1 cache size / (number of cache lines * element size)
+
+The number of cache lines in level 1 cache is typically 64, so:
+
+block_size = 32 KB / (64 * 8 bytes) = 512 bytes
+
+To calculate the block size for L2 cache, we can use the same formula, but with the size of L2 cache:
+
+block_size = 1024 KB / (64 * 8 bytes) = 2048 bytes
+
+c) ??????
+
+3. ?????? 
+
